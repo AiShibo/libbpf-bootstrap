@@ -13,6 +13,7 @@ struct so_event {
 	__u32 ip_proto;
 	__u32 pkt_type;
 	__u32 ifindex;
+	__u64 time_gap;
 };
 
 #endif /* __SOCKFILTER_H */

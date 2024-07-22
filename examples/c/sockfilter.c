@@ -121,7 +121,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	ltoa(ntohl(e->src_addr), sstr);
 	ltoa(ntohl(e->dst_addr), dstr);
 
-	printf("interface: %s\tprotocol: %s\t%s:%d(src) -> %s:%d(dst)\n", ifname,
+	printf("timelaps: %lld\tinterface: %s\tprotocol: %s\t%s:%d(src) -> %s:%d(dst)\n", e->time_gap, ifname,
 	       ipproto_mapping[e->ip_proto], sstr, ntohs(e->port16[0]), dstr, ntohs(e->port16[1]));
 
 	return 0;
