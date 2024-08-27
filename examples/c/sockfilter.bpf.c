@@ -13,6 +13,7 @@
 #define IP_OFFSET 0x1FFF
 
 typedef unsigned long long u64;
+typedef unsigned int u32;
 int st_counter = 0;
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
@@ -28,6 +29,13 @@ struct {
 	__type(key, u64);
 	__type(value, u64);
 } rec SEC(".maps");
+
+struct {
+    __uint(type, BPF_MAP_TYPE_ARRAY);
+    __uint(max_entries, 256);
+    __type(key, u32);
+    __type(value, u64);
+} my_array SEC(".maps");
 
 static inline int ip_is_fragment(struct __sk_buff *skb, __u32 nhoff)
 {
@@ -48,6 +56,18 @@ int socket_handler(struct __sk_buff *skb)
 	__u32 nhoff = ETH_HLEN;
 	u64 ts, *query_res, time_gap = counter;
 	int prev_counter = counter - 1;
+	u32 key = 0;
+	u64 value = 42;
+	u64 val = 0;
+
+	
+	bpf_map_update_elem(&my_array, &key, &value, BPF_ANY);
+
+	u64 *stored_value = bpf_map_lookup_elem(&my_array, &key);
+	if (stored_value) {
+	    bpf_printk("Value: %llu\n", *stored_value);
+	    val = *stored_value;
+	}	
 
 	ts = bpf_ktime_get_ns();
 	bpf_map_update_elem(&rec, &counter, &ts, BPF_ANY);
@@ -81,6 +101,7 @@ int socket_handler(struct __sk_buff *skb)
 	e->pkt_type = skb->pkt_type;
 	e->ifindex = skb->ifindex;
 	e->time_gap = time_gap;
+	e->val = val;
 	bpf_ringbuf_submit(e, 0);
 
 	st_counter++;
